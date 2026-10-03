@@ -1,62 +1,49 @@
-import os, re, threading
-import telebot
+import os, re, threading, telebot
 from flask import Flask
-import requests, urllib.parse
+import requests, urllib.parse, time
 
 app = Flask(__name__)
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-print(f"BOT_TOKEN Loaded: {bool(BOT_TOKEN)}")
 
-def is_bangla(text):
-    return bool(re.search(r'[\u0980-\u09FF]', text))
+def is_bangla(t):
+    return bool(re.search(r'[\u0980-\u09FF]', t))
 
-def ai_reply(question):
-    q = question.lower()
-    # Boss Credit
-    if any(x in q for x in ["ke baniyeche", "কে বানিয়েছে", "ke toiri", "কে তৈরি", "who made you", "who created you"]):
-        return "আমাকে তৈরি করেছেন আমার Boss ITz Sobuj! 🔥" if is_bangla(question) else "I was created by my Boss ITz Sobuj! 🔥"
-    
+def ai_reply(q):
+    q_low = q.lower()
+    if any(x in q_low for x in ["ke baniyeche","কে বানিয়েছে","ke toiri","who made you"]):
+        return "আমাকে তৈরি করেছেন আমার Boss ITz Sobuj! 🔥"
+    if any(x in q_low for x in ["tomar nam ki","তোমার নাম কি","who are you"]):
+        return "আমি ITz Sobuj Bot! Boss Sobuj আমাকে বানিয়েছে তোমাকে help করার জন্য! 🚀"
     try:
-        system_prompt = "You are ITz Sobuj Bot, created by ITz Sobuj. Reply short and friendly. Reply in same language as user (Bangla if user uses Bangla)."
-        full_prompt = f"{system_prompt} Question: {question}"
-        encoded = urllib.parse.quote(full_prompt)
-        url = f"https://text.pollinations.ai/{encoded}"
-        res = requests.get(url, timeout=20)
-        if res.status_code == 200 and res.text:
-            return res.text.strip()[:1500]
+        prompt = f"You are ITz Sobuj Bot. Reply in same language as user. User: {q}"
+        enc = urllib.parse.quote(prompt)
+        r = requests.get(f"https://text.pollinations.ai/{enc}?model=openai", timeout=20)
+        text = r.text.strip()
+        if text and text != "{}" and len(text) > 3 and '"{}"' not in text:
+            return text[:1500]
     except Exception as e:
-        print(f"AI Error: {e}")
-    
-    return "হ্যাঁ Boss বলো, শুনছি! 🚀"
+        print(e)
+    return "হ্যাঁ Boss বলো! কি help লাগবে? 🚀" if is_bangla(q) else "Yes Boss, tell me! How can I help? 🚀"
 
 @app.route('/')
 def home():
-    return "ITz Sobuj Bot is Live! Boss ITz Sobuj 🔥"
+    return "ITz Sobuj Bot is Live!"
 
-# Bot Setup
 if BOT_TOKEN:
     bot = telebot.TeleBot(BOT_TOKEN)
-    
     @bot.message_handler(func=lambda m: True)
-    def handle_all(m):
+    def handle(m):
+        if not m.text: return
         try:
-            reply = ai_reply(m.text)
-            bot.reply_to(m, reply)
+            bot.reply_to(m, ai_reply(m.text))
         except Exception as e:
-            print(f"Bot Error: {e}")
-
+            print(e)
     def run_bot():
-        print("Bot Polling Started...")
-        bot.infinity_polling()
-
+        bot.remove_webhook()
+        time.sleep(2)
+        bot.infinity_polling(skip_pending=True)
     def run_flask():
         app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
-
     if __name__ == "__main__":
-        threading.Thread(target=run_bot).start()
+        threading.Thread(target=run_bot, daemon=True).start()
         run_flask()
-else:
-    print("ERROR: BOT_TOKEN is None! Please set in Render Environment")
-    if __name__ == "__main__":
-        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
