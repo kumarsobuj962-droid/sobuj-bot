@@ -1,64 +1,62 @@
-import os
-import re
-import threading
+import os, re, threading
 import telebot
 from flask import Flask
-import requests
-import urllib.parse
+import requests, urllib.parse
+
+app = Flask(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-bot = telebot.TeleBot(BOT_TOKEN)
-app = Flask(__name__)
+print(f"BOT_TOKEN Loaded: {bool(BOT_TOKEN)}")
 
 def is_bangla(text):
     return bool(re.search(r'[\u0980-\u09FF]', text))
 
-def ai_reply(q):
-    q_low = q.lower()
-    bangla = is_bangla(q)
-
-    # 1. তোমাকে কে তৈরি করেছে - এটা সবচেয়ে গুরুত্বপূর্ণ
-    if "ke baniyeche" in q_low or "কে বানিয়েছে" in q_low or "ke toiri" in q_low or "কে তৈরি" in q_low or "who made you" in q_low or "who created you" in q_low or "creator" in q_low or "owner" in q_low or "tomake ke" in q_low:
-        if bangla:
-            return "আমাকে তৈরি করেছেন আমার Boss ITz Sobuj! 🔥 উনিই আমার মালিক!"
-        else:
-            return "I was created by my Boss ITz Sobuj! 🔥 He is my owner!"
-
-    # 2. অন্য সব প্রশ্নের উত্তর AI দিবে
+def ai_reply(question):
+    q = question.lower()
+    # Boss Credit
+    if any(x in q for x in ["ke baniyeche", "কে বানিয়েছে", "ke toiri", "কে তৈরি", "who made you", "who created you"]):
+        return "আমাকে তৈরি করেছেন আমার Boss ITz Sobuj! 🔥" if is_bangla(question) else "I was created by my Boss ITz Sobuj! 🔥"
+    
     try:
-        if bangla:
-            system = "Tumi ITz Sobuj Bot. Tomake toiri koreche ITz Sobuj. Tumi Banglay uttor dibe. Tumi khub helpful."
-        else:
-            system = "You are ITz Sobuj Bot. You were created by ITz Sobuj. You are very helpful. Answer in English."
-        
-        full_prompt = f"{system} User question: {q}"
-        enc = urllib.parse.quote(full_prompt)
-        r = requests.get(f"https://text.pollinations.ai/{enc}", timeout=15)
-        ans = r.text.strip()
-        if ans:
-            return ans[:1500]
-        else:
-            raise Exception("empty")
-    except:
-        if bangla:
-            return f"বলো Boss, '{q}' নিয়ে সুন্দর করে বলছি, একটু সমস্যা হচ্ছে, আবার বলো? 🚀"
-        else:
-            return f"Tell me Boss, I'm having a little trouble answering '{q}', please ask again? 🚀"
-
-@bot.message_handler(func=lambda m: True)
-def handle(m):
-    try:
-        bot.reply_to(m, ai_reply(m.text))
-    except:
-        pass
+        system_prompt = "You are ITz Sobuj Bot, created by ITz Sobuj. Reply short and friendly. Reply in same language as user (Bangla if user uses Bangla)."
+        full_prompt = f"{system_prompt} Question: {question}"
+        encoded = urllib.parse.quote(full_prompt)
+        url = f"https://text.pollinations.ai/{encoded}"
+        res = requests.get(url, timeout=20)
+        if res.status_code == 200 and res.text:
+            return res.text.strip()[:1500]
+    except Exception as e:
+        print(f"AI Error: {e}")
+    
+    return "হ্যাঁ Boss বলো, শুনছি! 🚀"
 
 @app.route('/')
 def home():
-    return "ITz Sobuj Bot is Live!"
+    return "ITz Sobuj Bot is Live! Boss ITz Sobuj 🔥"
 
-def run_flask():
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+# Bot Setup
+if BOT_TOKEN:
+    bot = telebot.TeleBot(BOT_TOKEN)
+    
+    @bot.message_handler(func=lambda m: True)
+    def handle_all(m):
+        try:
+            reply = ai_reply(m.text)
+            bot.reply_to(m, reply)
+        except Exception as e:
+            print(f"Bot Error: {e}")
 
-if __name__ == "__main__":
-    threading.Thread(target=run_flask).start()
-    bot.infinity_polling()
+    def run_bot():
+        print("Bot Polling Started...")
+        bot.infinity_polling()
+
+    def run_flask():
+        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+
+    if __name__ == "__main__":
+        threading.Thread(target=run_bot).start()
+        run_flask()
+else:
+    print("ERROR: BOT_TOKEN is None! Please set in Render Environment")
+    if __name__ == "__main__":
+        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
