@@ -4,7 +4,8 @@ from telebot import types
 from flask import Flask
 
 # ===== BOSS SETTINGS =====
-BOT_TOKEN = "8612963645:AAHjb65-pND2qn-90JWWlSpQgHJz02EUW74"
+import os
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 ADMIN_ID = 7310026950
 COURSE_LINK = "https://t.me/+KbQkJl5WDGNmMDQ1"
 BKASH_NUMBER = "01770885382"
