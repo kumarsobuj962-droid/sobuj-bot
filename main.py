@@ -1,40 +1,55 @@
 import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-TOKEN = os.environ.get("BOT_TOKEN", "তোমার Token এখানেও বসিয়ে রাখো")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+
+CONTACT_TEXT = """🇧🇩 নিয়ামতপুর সেবা - অফিসিয়াল যোগাযোগ
+
+📧 UNO নিয়ামতপুর (Verified সরকারি):
+unoniamatpur@mopa.gov.bd
+
+🏥 উপজেলা স্বাস্থ্য কমপ্লেক্স (Verified):
+neyamatpur@uhfpo.dghs.gov.bd
+
+🚨 জরুরি: জাতীয় জরুরি সেবা 999
+"""
+
+SERVICE_TEXT = """🇧🇩 নিয়ামতপুর উপজেলা - ৮টি ইউনিয়ন
+
+1. বাহাদুরপুর - 34,670 জন
+2. ভাবিচা - 32,107 জন  
+3. চন্দননগর - 25,894 জন
+4. হাজীনগর - 28,455 জন
+5. নিয়ামতপুর সদর - 28,313 জন
+6. পারইল - 31,152 জন
+7. রসুলপুর - 38,232 জন
+8. শ্রীমন্তপুর - 29,528 জন
+
+সেবা: জন্ম নিবন্ধন, নাগরিক সনদ, ভূমি সেবা
+তথ্যসূত্র: নওগাঁ জেলা পোর্টাল
+"""
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🙏 নমস্কার! আমি *নিয়ামতপুর সেবা বট*\n\n"
-        "⚠️ এটি বেসরকারি সহায়ক বট, সরকারি বট নয়।\n\n"
-        "👇 নিচে ক্লিক করো:\n"
-        "/nid - NID সেবা\n"
-        "/birth - জন্ম নিবন্ধন\n"
-        "/nagad - নগদ সেবা\n"
-        "/upazila - উপজেলা তথ্য\n"
-        "/bazar - শালবাড়ী বাজার",
-        parse_mode='Markdown'
-    )
+    await update.message.reply_text("আসসালামু আলাইকুম! 🙏\nআমি নিয়ামতপুর সেবা বট।\n\n/services - সেবা তালিকা\n/contact - যোগাযোগ\n/help - সাহায্য")
 
-async def nid(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("📄 NID করতে: জন্ম নিবন্ধন, বাবা-মায়ের NID, চেয়ারম্যান সার্টিফিকেট লাগবে। যাবেন: নিয়ামতপুর নির্বাচন অফিস।")
-async def birth(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("📜 জন্ম নিবন্ধন: টিকা কার্ড, বাবা-মায়ের NID নিয়ে ইউনিয়ন পরিষদে যান। bdris.gov.bd")
-async def nagad(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("💰 নগদ PIN Reset: *167# > 8 > NID দিন।")
-async def upazila(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🏛️ নিয়ামতপুর উপজেলা, নওগাঁ। সময়: 9AM-4PM। প্রচারে - ITz Sobuj")
-async def bazar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🛒 শালবাড়ী বাজার - সকল দোকান শীঘ্রই যুক্ত হবে।")
+async def services(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(SERVICE_TEXT)
 
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("nid", nid))
-app.add_handler(CommandHandler("birth", birth))
-app.add_handler(CommandHandler("nagad", nagad))
-app.add_handler(CommandHandler("upazila", upazila))
-app.add_handler(CommandHandler("bazar", bazar))
+async def contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(CONTACT_TEXT)
 
-print("Bot Running...")
-app.run_polling()
+async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("যেকোনো সমস্যায় /contact - জরুরি 999")
+
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("services", services))
+    app.add_handler(CommandHandler("contact", contact))
+    app.add_handler(CommandHandler("help", help_cmd))
+    print("Bot Starting...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
