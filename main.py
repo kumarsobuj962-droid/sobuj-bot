@@ -2,7 +2,7 @@ import telebot
 import requests
 import os
 
-BOT_TOKEN = "8460153539:AAE... তোমার Token এখানে বসাও"  # <--- এখানে তোমার Token
+BOT_TOKEN = "8783164981:AAF96LkEQ-K-uD7RM_h4aOg0XruYPfX5jcs"
 WEATHER_API = "9338fbe75f37359424935e8c383e80cc"
 
 bot = telebot.TeleBot(BOT_TOKEN)
