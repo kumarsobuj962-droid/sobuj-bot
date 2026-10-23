@@ -47,12 +47,15 @@ def weather_cmd(m):
 
 @bot.message_handler(commands=['time'])
 def time_cmd(m):
-    now = datetime.now().strftime("%d/%m/%Y %I:%M %p")
-    bot.reply_to(m, f"⏰ **BOSS এখন সময়:**\n{now}")
+    from datetime import timedelta
+    bd_time = datetime.utcnow() + timedelta(hours=6)
+    now = bd_time.strftime("%d/%m/%Y %I:%M %p")
+    bot.reply_to(m, f"⏰ **BOSS এখন সময়:**\n{now}")
+
 
 @bot.message_handler(commands=['contact'])
 def contact_cmd(m):
-    bot.reply_to(m, "📞 **যোগাযোগ / Contact**\n\n👤 Sobuj Kumar\n📍 Niamatpur, Naogaon\n🤖 Bot: @NimatpurSebabot")
+    bot.reply_to(m, "📞 **যোগাযোগ / Contact**\n\n👤 Sobuj Kumar\n📍 Niamatpur, Naogaon\n🤖 Bot: ITz Sobuj")
 
 @bot.message_handler(commands=['help', 'services'])
 def help_cmd(m):
