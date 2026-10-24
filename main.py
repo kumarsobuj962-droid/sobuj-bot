@@ -4,7 +4,7 @@ import threading
 from datetime import datetime
 import pytz
 
-BOT_TOKEN ="8783164981:AAFZ-mX7GSxoznnk2IrPpc-gQno1nQBucJA"
+BOT_TOKEN ="8783164981:AAGhXqg3iXEG5NoA3sEinyEGw0ChugH3sd8"
 WEATHER_API ="9338fbe75f37359424935e8c383e80cc"
 
 bot = telebot.TeleBot(BOT_TOKEN)
